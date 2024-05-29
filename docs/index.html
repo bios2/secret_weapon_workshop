@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -67,6 +101,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -113,6 +176,12 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#what-is-the-secret-weapon" id="toc-what-is-the-secret-weapon" class="nav-link active" data-scroll-target="#what-is-the-secret-weapon">What is the secret weapon?</a></li>
+  <li><a href="#worked-example" id="toc-worked-example" class="nav-link" data-scroll-target="#worked-example">Worked example</a>
+  <ul class="collapse">
+  <li><a href="#data-preparation-center-and-scale-your-predictors" id="toc-data-preparation-center-and-scale-your-predictors" class="nav-link" data-scroll-target="#data-preparation-center-and-scale-your-predictors">Data preparation – Center and scale your predictors!</a></li>
+  <li><a href="#the-secret-weapon-visually" id="toc-the-secret-weapon-visually" class="nav-link" data-scroll-target="#the-secret-weapon-visually">The secret weapon: visually</a></li>
+  <li><a href="#the-secret-weapon-in-tidyverse-code" id="toc-the-secret-weapon-in-tidyverse-code" class="nav-link" data-scroll-target="#the-secret-weapon-in-tidyverse-code">The secret weapon: in tidyverse code</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -142,12 +211,165 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="what-is-the-secret-weapon">What is the secret weapon?</h2>
 <p>In many ways, ecology is the discipline of replication. Most ecological studies have multiple species, multiple sites, or multiple time points in their study – almost by definition. As a result, our analyses are almost always designed to include replication. The most common tool that people use is the multi-level model (AKA the hierarchical model). These models are populuare, useful, and very flexible; but they have the weakness of being very complex, difficult to interpret, and often difficult to write correctly.</p>
 <p>Aside from the technical complexity, there’s also conceptual complexity when ecological data has many dimensions of space, time, species, etc. It can be quite hard to visualize and understand what’s happening. Also, we may have hypotheses that operate at multiple levels. We may have one hypothesis for what happens within any group, for example, across individuals or species, and another hypothesis for what happens across sites or over time.</p>
-<p>Enter the secret weapon. The secret weapon is the name Andrew Gelman gives to a very simple idea. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.</p>
+<p>Enter the secret weapon. The secret weapon is the name <a href="https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/">Andrew Gelman</a>. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.</p>
 <p>Then we can either analyze the summary statistics in a second study, which is a technique sometimes called “statistics on statistics”, or go on to build a multilevel model. We may even decide that this is a sufficient endpoint for our study.</p>
 <p>This is a technique that everyone in this room can use right now and which I can confidently recommend as advice to anybody in college who’s beginning a quantitative analysis project.</p>
 <p>This workshop will be divided into 3 parts. First, we’ll do a worked example using the <code>mite</code> data from the package <code>vegan</code>. In the second, we’re going to split into an exercise section where we will look at different examples from some long-term datasets that I’ve found. And third, we will have time to work on our own datasets.</p>
+</section>
+<section id="worked-example" class="level2">
+<h2 class="anchored" data-anchor-id="worked-example">Worked example</h2>
+<section id="data-preparation-center-and-scale-your-predictors" class="level3">
+<h3 class="anchored" data-anchor-id="data-preparation-center-and-scale-your-predictors">Data preparation – Center and scale your predictors!</h3>
+<p>This example uses the famous <code>mite</code> dataset, collected by Daniel Borcard in 1989 and included in the famous <code>vegan</code> package.</p>
+<p><a href="https://bios2.github.io/hiermod/slides/01_Data/#/oribatid-mite">Slides introducing the dataset</a></p>
+<p>First, we’ll load the data and do some reorganization and preparation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(mite, <span class="at">package =</span> <span class="st">"vegan"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"mite.env"</span>, <span class="at">package =</span> <span class="st">"vegan"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cmdstanr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is cmdstanr version 0.7.1
+- CmdStanR documentation and vignettes: mc-stan.org/cmdstanr
+- CmdStan path: /home/andrew/software/cmdstan
+- CmdStan version: 2.34.1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># combine data and environment</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mite_data_long <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(mite.env, mite) <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(Brachy<span class="sc">:</span>Trimalc2, <span class="at">names_to =</span> <span class="st">"spp"</span>, <span class="at">values_to =</span> <span class="st">"abd"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Because we’re ecologists, we’ll do one of the most classic ecological models: a Binomial GLM, modelling the presence or absence of a species based on the water content of the soil.</p>
+<p><span class="math display">\[
+\begin{align}
+\text{Presence} &amp;\sim \text{Binomial}\left(\frac{e^a}{1 + e^a}, 1\right) \\
+a &amp;= \beta_0 + \beta_xx
+\end{align}
+\]</span></p>
+<p>Where <span class="math inline">\(x\)</span> is some predictor variable and <span class="math inline">\(\frac{e^a}{1 + e^a}\)</span> is the logit link function. To keep things simple and univariate, let’s consider only water for <span class="math inline">\(x\)</span>.</p>
+<p>First, a quick word about centering and scaling a predictor variable:</p>
+<ol type="1">
+<li>I center the predictor by subtracting the mean. This changes the <em>intercept</em> of my linear predictor. It becomes the mean log-odds of occurrance when the water content is average</li>
+<li>I divide water content by 100. The dataset has units of <strong>grams per Litre</strong> of water (see <code>?vegan::mite.env</code> for more details). This is fine, but I don’t think mites are able to sense differences as precise as a millimeter of water either way. by dividing by 10 I transform this into centilitres, which is more informative.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>mite_data_long_transformed <span class="ot">&lt;-</span> mite_data_long <span class="sc">|&gt;</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">presabs =</span> <span class="fu">as.numeric</span>(abd<span class="sc">&gt;</span><span class="dv">0</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>         <span class="co"># center predictors</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">water =</span> (WatrCont <span class="sc">-</span> <span class="fu">mean</span>(WatrCont)) <span class="sc">/</span> <span class="dv">100</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>         )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This makes the model:</p>
+<p><span class="math display">\[
+\begin{align}
+\text{Presence} &amp;\sim \text{Binomial}\left(\frac{e^a}{1 + e^a}, 1\right) \\
+a &amp;= \beta_0 + \beta_{\text{water}}\frac{\text{water} - \overline{\text{water}}}{100}
+\end{align}
+\]</span></p>
+</section>
+<section id="the-secret-weapon-visually" class="level3">
+<h3 class="anchored" data-anchor-id="the-secret-weapon-visually">The secret weapon: visually</h3>
+<p>We can already get a very good visual expression of the Secret Weapon approach using the power of ggplot2 and <code>stat_smooth()</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mite_data_long_transformed <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> water, <span class="at">y =</span> presabs)) <span class="sc">+</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"glm"</span>, <span class="at">method.args =</span> <span class="fu">list</span>(<span class="at">family =</span> <span class="st">"binomial"</span>)) <span class="sc">+</span> </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>spp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>some things to notice about this figure:</p>
+<ul>
+<li>the x-axis scale has been transformed from “grams per litre” to “centilitres away from average”</li>
+<li>there is a ton of variation in how different species respond to water!</li>
+</ul>
+</section>
+<section id="the-secret-weapon-in-tidyverse-code" class="level3">
+<h3 class="anchored" data-anchor-id="the-secret-weapon-in-tidyverse-code">The secret weapon: in tidyverse code</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mite_many_glms <span class="ot">&lt;-</span> mite_data_long_transformed <span class="sc">|&gt;</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest_by</span>(spp) <span class="sc">|&gt;</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">logistic_regressions =</span> <span class="fu">list</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">glm</span>(presabs <span class="sc">~</span> water,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">family =</span> <span class="st">"binomial"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">data =</span> data))) <span class="sc">|&gt;</span> </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">coefs =</span> <span class="fu">list</span>(broom<span class="sc">::</span><span class="fu">tidy</span>(logistic_regressions)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Split-Apply-Combine
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>To explore this kind of thinking, we are going to use an approach sometimes called <a href="https://vita.had.co.nz/papers/plyr.pdf">“split-apply-combine”</a></p>
+<p>There are many possible ways to do this in practice. We are using a technique here from the tidyverse, which you can <a href="https://dplyr.tidyverse.org/articles/rowwise.html">read more about</a>.</p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>mite_many_glm_coefs <span class="ot">&lt;-</span> mite_many_glms <span class="sc">|&gt;</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>data, <span class="sc">-</span>logistic_regressions) <span class="sc">|&gt;</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(coefs)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>mite_many_glm_coefs <span class="sc">|&gt;</span> </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate, <span class="at">y =</span> spp,</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">xmin =</span> estimate <span class="sc">-</span> std.error,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">xmax =</span> estimate <span class="sc">+</span> std.error)) <span class="sc">+</span> </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_pointrange</span>() <span class="sc">+</span> </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>term, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>As you can see, some of these estimates are high, others low. We could also plot these as histograms to see this distribution.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>mite_many_glm_coefs <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> estimate)) <span class="sc">+</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> .<span class="dv">5</span>) <span class="sc">+</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>term, <span class="at">scales =</span> <span class="st">"free"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Once again, the two parameters of this model represent:</p>
+<ul>
+<li><em>Intercept</em> The probability (in log-odds) of a species being present at the average water concentration. some species are common, others are rare.</li>
+<li><em>water</em> this is the change in probability (in log-odds) as water increases by one centilitre per litre of substrate.</li>
+</ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

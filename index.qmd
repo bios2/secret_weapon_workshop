@@ -13,10 +13,132 @@ These models are populuare, useful, and very flexible; but they have the weaknes
 
 Aside from the technical complexity, there's also conceptual complexity when ecological data has many dimensions of space, time, species, etc. It can be quite hard to visualize and understand what's happening. Also, we may have hypotheses that operate at multiple levels. We may have one hypothesis for what happens within any group, for example, across individuals or species, and another hypothesis for what happens across sites or over time.
 
-Enter the secret weapon. The secret weapon is the name Andrew Gelman gives to a very simple idea. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.
+Enter the secret weapon. The secret weapon is the name [Andrew Gelman ](https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/). Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.
 
 Then we can either analyze the summary statistics in a second study, which is a technique sometimes called "statistics on statistics", or go on to build a multilevel model. We may even decide that this is a sufficient endpoint for our study.
 
 This is a technique that everyone in this room can use right now and which I can confidently recommend as advice to anybody in college who's beginning a quantitative analysis project.
 
 This workshop will be divided into 3 parts. First, we'll do a worked example using the `mite` data from the package `vegan`. In the second, we're going to split into an exercise section where we will look at different examples from some long-term datasets that I've found. And third, we will have time to work on our own datasets. 
+
+
+## Worked example
+
+### Data preparation -- Center and scale your predictors!
+
+This example uses the famous `mite` dataset, collected by Daniel Borcard in 1989 and included in the famous `vegan` package.
+
+[Slides introducing the dataset](https://bios2.github.io/hiermod/slides/01_Data/#/oribatid-mite)
+
+First, we'll load the data and do some reorganization and preparation.
+
+```{r}
+data(mite, package = "vegan")
+data("mite.env", package = "vegan")
+library(tidyverse)
+library(cmdstanr)
+
+# combine data and environment
+mite_data_long <- bind_cols(mite.env, mite) |> 
+  pivot_longer(Brachy:Trimalc2, names_to = "spp", values_to = "abd")
+```
+
+Because we're ecologists, we'll do one of the most classic ecological models: a Binomial GLM, modelling the presence or absence of a species based on the water content of the soil.
+
+$$
+\begin{align}
+\text{Presence} &\sim \text{Binomial}\left(\frac{e^a}{1 + e^a}, 1\right) \\
+a &= \beta_0 + \beta_xx
+\end{align}
+$$
+
+Where $x$ is some predictor variable and $\frac{e^a}{1 + e^a}$ is the logit link function.
+To keep things simple and univariate, let's consider only water for $x$. 
+
+First, a quick word about centering and scaling a predictor variable:
+
+1.  I center the predictor by subtracting the mean. This changes the *intercept* of my linear predictor. It becomes the mean log-odds of occurrance when the water content is average
+2.  I divide water content by 100. The dataset has units of **grams per Litre** of water (see `?vegan::mite.env` for more details). This is fine, but I don't think mites are able to sense differences as precise as a millimeter of water either way. by dividing by 10 I transform this into centilitres, which is more informative.
+
+```{r}
+mite_data_long_transformed <- mite_data_long |> 
+  mutate(presabs = as.numeric(abd>0),
+         # center predictors
+         water = (WatrCont - mean(WatrCont)) / 100
+         )
+```
+
+
+This makes the model:
+
+$$
+\begin{align}
+\text{Presence} &\sim \text{Binomial}\left(\frac{e^a}{1 + e^a}, 1\right) \\
+a &= \beta_0 + \beta_{\text{water}}\frac{\text{water} - \overline{\text{water}}}{100}
+\end{align}
+$$
+
+
+### The secret weapon: visually
+
+We can already get a very good visual expression of the Secret Weapon approach using the power of ggplot2 and `stat_smooth()`
+
+```{r}
+mite_data_long_transformed |> 
+  ggplot(aes(x = water, y = presabs)) + 
+  geom_point() + 
+  stat_smooth(method = "glm", method.args = list(family = "binomial")) + 
+  facet_wrap(~spp)
+```
+
+some things to notice about this figure:
+
+-   the x-axis scale has been transformed from "grams per litre" to "centilitres away from average"
+-   there is a ton of variation in how different species respond to water!
+
+### The secret weapon: in tidyverse code
+
+```{r}
+mite_many_glms <- mite_data_long_transformed |> 
+  nest_by(spp) |> 
+  mutate(logistic_regressions = list(
+    glm(presabs ~ water,
+        family = "binomial",
+        data = data))) |> 
+  mutate(coefs = list(broom::tidy(logistic_regressions)))
+```
+
+:::{.callout-note}
+## Split-Apply-Combine
+
+To explore this kind of thinking, we are going to use an approach sometimes called ["split-apply-combine"](https://vita.had.co.nz/papers/plyr.pdf)
+
+There are many possible ways to do this in practice. We are using a technique here from the tidyverse, which you can [read more about](https://dplyr.tidyverse.org/articles/rowwise.html).
+:::
+
+```{r}
+mite_many_glm_coefs <- mite_many_glms |> 
+  select(-data, -logistic_regressions) |> 
+  unnest(coefs)
+
+mite_many_glm_coefs |> 
+  ggplot(aes(x = estimate, y = spp,
+             xmin = estimate - std.error,
+             xmax = estimate + std.error)) + 
+  geom_pointrange() + 
+  facet_wrap(~term, scales = "free")
+```
+
+As you can see, some of these estimates are high, others low. We could also plot these as histograms to see this distribution.
+
+```{r}
+mite_many_glm_coefs |> 
+  ggplot(aes(x = estimate)) + 
+  geom_histogram(binwidth = .5) + 
+  facet_wrap(~term, scales = "free")
+```
+
+Once again, the two parameters of this model represent:
+
+-   *Intercept* The probability (in log-odds) of a species being present at the average water concentration. some species are common, others are rare.
+-   *water* this is the change in probability (in log-odds) as water increases by one centilitre per litre of substrate.
