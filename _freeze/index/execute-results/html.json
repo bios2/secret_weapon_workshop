@@ -1,0 +1,17 @@
+{
+  "hash": "9430ac80ce935232c59b2e0ecf0fbfaf",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"secret_weapon_workshop\"\neditor_options: \n  chunk_output_type: console\n---\n\n\nThis is a Quarto website.\n\nTo learn more about Quarto websites visit <https://quarto.org/docs/websites>.\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# Load the ggplot2 library\nlibrary(ggplot2)\n\n# Create a data frame with a single row for the rectangle\ndata <- data.frame(\n  xmin = 0,\n  xmax = 1,\n  ymin = 0,\n  ymax = 1\n)\n\n# Create the plot\nggplot(data) +\n  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),\n            fill = \"lightgreen\", color = \"darkgreen\", \n            alpha = 0.5, \n            inherit.aes = FALSE, \n            size = 1, \n            radius = 0.1) + # Adjust radius for rounded corners\n  theme_void() +\n  theme(panel.background = element_rect(fill = NA))  # Set background to transparent\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\nWarning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.\nℹ Please use `linewidth` instead.\n```\n\n\n:::\n\n::: {.cell-output .cell-output-stderr}\n\n```\nWarning in geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), :\nIgnoring unknown parameters: `radius`\n```\n\n\n:::\n\n::: {.cell-output-display}\n![](index_files/figure-html/unnamed-chunk-1-1.png){width=672}\n:::\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\n# Load the required libraries\nlibrary(ggplot2)\nlibrary(gganimate)\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\nNo renderer backend detected. gganimate will default to writing frames to separate files\nConsider installing:\n- the `gifski` package for gif output\n- the `av` package for video output\nand restarting the R session\n```\n\n\n:::\n\n```{.r .cell-code}\n# Define the gap size\ngap_size <- 0.02\n\n# Create data for the initial state (one rectangle)\ndata_initial <- data.frame(\n  xmin = 0,\n  xmax = 1,\n  ymin = 0,\n  ymax = 1,\n  id = 1\n)\n\n# Create data for the final state (five rectangles with gaps)\ndata_final <- data.frame(\n  xmin = rep(0, 5),\n  xmax = rep(1, 5),\n  ymin = seq(0, 0.8, by = 0.2) + gap_size / 2,\n  ymax = seq(0.2, 1, by = 0.2) - gap_size / 2,\n  id = 1:5\n)\n\n# Combine both datasets and add a state column\ndata <- rbind(\n  cbind(data_initial, state = \"one\"),\n  cbind(data_final, state = \"five\")\n)\n\n# Create the plot\np <- ggplot(data) +\n  geom_rect(aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, group = id),\n            fill = \"lightgreen\", color = \"darkgreen\", \n            alpha = 0.5, \n            inherit.aes = FALSE, \n            size = 1) + \n  theme_void() +\n  theme(panel.background = element_rect(fill = NA)) +  # Set background to transparent\n  transition_states(state, transition_length = 2, state_length = 1) +\n  ease_aes('cubic-in-out')\n\n# Animate the plot\nanimate(p, nframes = 10, width = 600, height = 600)\n```\n\n::: {.cell-output .cell-output-stderr}\n\n```\nWarning: No renderer available. Please install the gifski, av, or magick package to\ncreate animated output\n```\n\n\n:::\n:::\n",
+    "supporting": [
+      "index_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

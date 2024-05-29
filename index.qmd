@@ -1,0 +1,22 @@
+---
+title: "Secret weapon workshop"
+editor_options: 
+  chunk_output_type: console
+---
+
+## What is the secret weapon? 
+
+In many ways, ecology is the discipline of replication. 
+Most ecological studies have multiple species, multiple sites, or multiple time points in their study -- almost by definition. 
+As a result, our analyses are almost always designed to include replication. The most common tool that people use is the multi-level model (AKA the hierarchical model). 
+These models are populuare, useful, and very flexible; but they have the weakness of being very complex, difficult to interpret, and often difficult to write correctly.
+
+Aside from the technical complexity, there's also conceptual complexity when ecological data has many dimensions of space, time, species, etc. It can be quite hard to visualize and understand what's happening. Also, we may have hypotheses that operate at multiple levels. We may have one hypothesis for what happens within any group, for example, across individuals or species, and another hypothesis for what happens across sites or over time.
+
+Enter the secret weapon. The secret weapon is the name Andrew Gelman gives to a very simple idea. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.
+
+Then we can either analyze the summary statistics in a second study, which is a technique sometimes called "statistics on statistics", or go on to build a multilevel model. We may even decide that this is a sufficient endpoint for our study.
+
+This is a technique that everyone in this room can use right now and which I can confidently recommend as advice to anybody in college who's beginning a quantitative analysis project.
+
+This workshop will be divided into 3 parts. First, we'll do a worked example using the `mite` data from the package `vegan`. In the second, we're going to split into an exercise section where we will look at different examples from some long-term datasets that I've found. And third, we will have time to work on our own datasets. 
