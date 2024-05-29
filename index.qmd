@@ -13,7 +13,7 @@ These models are populuare, useful, and very flexible; but they have the weaknes
 
 Aside from the technical complexity, there's also conceptual complexity when ecological data has many dimensions of space, time, species, etc. It can be quite hard to visualize and understand what's happening. Also, we may have hypotheses that operate at multiple levels. We may have one hypothesis for what happens within any group, for example, across individuals or species, and another hypothesis for what happens across sites or over time.
 
-Enter the secret weapon. The secret weapon is the name [Andrew Gelman ](https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/). Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.
+Enter the secret weapon. The secret weapon is the name [Andrew Gelman ](https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/)gives to this simple idea. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.
 
 Then we can either analyze the summary statistics in a second study, which is a technique sometimes called "statistics on statistics", or go on to build a multilevel model. We may even decide that this is a sufficient endpoint for our study.
 
@@ -40,6 +40,7 @@ library(cmdstanr)
 
 # combine data and environment
 mite_data_long <- bind_cols(mite.env, mite) |> 
+  tibble::rownames_to_column(var = "site_id") |> 
   pivot_longer(Brachy:Trimalc2, names_to = "spp", values_to = "abd")
 ```
 
@@ -144,6 +145,7 @@ mite_many_glm_coefs |>
   ggplot(aes(x = estimate)) + 
   geom_histogram(binwidth = .5) + 
   facet_wrap(~term, scales = "free")
+
 ```
 
 Once again, the two parameters of this model represent:
@@ -151,9 +153,68 @@ Once again, the two parameters of this model represent:
 -   *Intercept* The probability (in log-odds) of a species being present at the average water concentration. some species are common, others are rare.
 -   *water* this is the change in probability (in log-odds) as water increases by one centilitre per litre of substrate.
 
-:::{.callout-note}
-## For the Bayesians
+
+
+#### For the Bayesians
 
 The above is adapted from a tutorial I wrote for a course in Bayesian statistics. If you would like to see how this is done in the Bayesian software Stan, [the course notes are here](https://bios2.github.io/hiermod/topics/correlated_effects/)
 
-:::
+
+## Practice examples
+
+Here are some exercises that might make good practice for using the Secret Weapon:
+
+* The `mite.env` data has another continuous predictor, `SubsDens`. Adapt the example above for this variable. Which has stronger effects on species presence-absence: water, or substrate density?
+* We used the tidyverse to implement the Secret Weapon. This would also work very well in a for-loop! Write a for-loop version of the same workflow.
+* We did a binomial GLM for presence absence. We could also use a linear model to estimate evenness in each plot, based on a rank-abundance plot, like this:
+
+```{r}
+rank_df <- mite_data_long_transformed |> 
+  filter(abd != 0) |> 
+  group_by(site_id) |> 
+  mutate(spp_rank = dense_rank(desc(abd)))
+
+rank_df |> 
+  ungroup() |> 
+  ## drop some sites just for appearance
+  filter(site_id %in% c("1", "15", "47")) |> 
+  ggplot(aes(x = spp_rank, y = log(abd))) + 
+  facet_wrap(~site_id) + 
+  geom_point() + 
+  stat_smooth(method = "lm")
+
+```
+
+The slope of these lines is one way to think about evenness -- more negative slopes mean a less even community.  Use this approach to ask the question: Does evenness change with water concentration?
+
+## Take it to a brand-new dataset (or to your own science!)
+
+Install the LTER data sampler package
+
+```{r eval=FALSE}
+# install.packages("remotes")
+remotes::install_github("lter/lterdatasampler")
+```
+
+```{r}
+library(lterdatasampler)
+```
+
+Check out the [documentation here](https://lter.github.io/lterdatasampler/)
+
+There are LOTS of useful datasets in here, which we can use to practice the Secret Weapon. Here are some suggestions to get us started:
+
+#### Seedling stem length vs Stem dry mass
+
+```{r}
+knitr::kable(head(hbr_maples))
+```
+
+#### Growth rates of bison over time
+
+Alternative idea: average differences between males and females across years.
+
+```{r}
+knitr::kable(head(knz_bison))
+```
+

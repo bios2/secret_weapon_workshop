@@ -182,6 +182,8 @@ window.Quarto = {
   <li><a href="#the-secret-weapon-visually" id="toc-the-secret-weapon-visually" class="nav-link" data-scroll-target="#the-secret-weapon-visually">The secret weapon: visually</a></li>
   <li><a href="#the-secret-weapon-in-tidyverse-code" id="toc-the-secret-weapon-in-tidyverse-code" class="nav-link" data-scroll-target="#the-secret-weapon-in-tidyverse-code">The secret weapon: in tidyverse code</a></li>
   </ul></li>
+  <li><a href="#practice-examples" id="toc-practice-examples" class="nav-link" data-scroll-target="#practice-examples">Practice examples</a></li>
+  <li><a href="#take-it-to-a-brand-new-dataset-or-to-your-own-science" id="toc-take-it-to-a-brand-new-dataset-or-to-your-own-science" class="nav-link" data-scroll-target="#take-it-to-a-brand-new-dataset-or-to-your-own-science">Take it to a brand-new dataset (or to your own science!)</a></li>
   </ul>
 </nav>
     </div>
@@ -211,7 +213,7 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="what-is-the-secret-weapon">What is the secret weapon?</h2>
 <p>In many ways, ecology is the discipline of replication. Most ecological studies have multiple species, multiple sites, or multiple time points in their study – almost by definition. As a result, our analyses are almost always designed to include replication. The most common tool that people use is the multi-level model (AKA the hierarchical model). These models are populuare, useful, and very flexible; but they have the weakness of being very complex, difficult to interpret, and often difficult to write correctly.</p>
 <p>Aside from the technical complexity, there’s also conceptual complexity when ecological data has many dimensions of space, time, species, etc. It can be quite hard to visualize and understand what’s happening. Also, we may have hypotheses that operate at multiple levels. We may have one hypothesis for what happens within any group, for example, across individuals or species, and another hypothesis for what happens across sites or over time.</p>
-<p>Enter the secret weapon. The secret weapon is the name <a href="https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/">Andrew Gelman</a>. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.</p>
+<p>Enter the secret weapon. The secret weapon is the name <a href="https://statmodeling.stat.columbia.edu/2005/03/07/the_secret_weap/">Andrew Gelman</a>gives to this simple idea. Instead of conducting one large analysis, divide your data into multiple small groups, fit a model to each small group, and compare one or more summary statistics across groups.</p>
 <p>Then we can either analyze the summary statistics in a second study, which is a technique sometimes called “statistics on statistics”, or go on to build a multilevel model. We may even decide that this is a sufficient endpoint for our study.</p>
 <p>This is a technique that everyone in this room can use right now and which I can confidently recommend as advice to anybody in college who’s beginning a quantitative analysis project.</p>
 <p>This workshop will be divided into 3 parts. First, we’ll do a worked example using the <code>mite</code> data from the package <code>vegan</code>. In the second, we’re going to split into an exercise section where we will look at different examples from some long-term datasets that I’ve found. And third, we will have time to work on our own datasets.</p>
@@ -248,7 +250,8 @@ window.Quarto = {
 </div>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># combine data and environment</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mite_data_long <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(mite.env, mite) <span class="sc">|&gt;</span> </span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(Brachy<span class="sc">:</span>Trimalc2, <span class="at">names_to =</span> <span class="st">"spp"</span>, <span class="at">values_to =</span> <span class="st">"abd"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  tibble<span class="sc">::</span><span class="fu">rownames_to_column</span>(<span class="at">var =</span> <span class="st">"site_id"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(Brachy<span class="sc">:</span>Trimalc2, <span class="at">names_to =</span> <span class="st">"spp"</span>, <span class="at">values_to =</span> <span class="st">"abd"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Because we’re ecologists, we’ll do one of the most classic ecological models: a Binomial GLM, modelling the presence or absence of a species based on the water content of the soil.</p>
 <p><span class="math display">\[
@@ -365,22 +368,274 @@ a &amp;= \beta_0 + \beta_{\text{water}}\frac{\text{water} - \overline{\text{wate
 <li><em>Intercept</em> The probability (in log-odds) of a species being present at the average water concentration. some species are common, others are rare.</li>
 <li><em>water</em> this is the change in probability (in log-odds) as water increases by one centilitre per litre of substrate.</li>
 </ul>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-For the Bayesians
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The above is adapted from a tutorial I wrote for a course in Bayesian statistics. If you would like to see how this is done in the Bayesian software Stan, <a href="https://bios2.github.io/hiermod/topics/correlated_effects/">the course notes are here</a></p>
-</div>
-</div>
-
-
 </section>
+<section id="for-the-bayesians" class="level4">
+<h4 class="anchored" data-anchor-id="for-the-bayesians">For the Bayesians</h4>
+<p>The above is adapted from a tutorial I wrote for a course in Bayesian statistics. If you would like to see how this is done in the Bayesian software Stan, <a href="https://bios2.github.io/hiermod/topics/correlated_effects/">the course notes are here</a></p>
+</section>
+</section>
+</section>
+<section id="practice-examples" class="level2">
+<h2 class="anchored" data-anchor-id="practice-examples">Practice examples</h2>
+<p>Here are some exercises that might make good practice for using the Secret Weapon:</p>
+<ul>
+<li>The <code>mite.env</code> data has another continuous predictor, <code>SubsDens</code>. Adapt the example above for this variable. Which has stronger effects on species presence-absence: water, or substrate density?</li>
+<li>We used the tidyverse to implement the Secret Weapon. This would also work very well in a for-loop! Write a for-loop version of the same workflow.</li>
+<li>We did a binomial GLM for presence absence. We could also use a linear model to estimate evenness in each plot, based on a rank-abundance plot, like this:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>rank_df <span class="ot">&lt;-</span> mite_data_long_transformed <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(abd <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(site_id) <span class="sc">|&gt;</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">spp_rank =</span> <span class="fu">dense_rank</span>(<span class="fu">desc</span>(abd)))</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>rank_df <span class="sc">|&gt;</span> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="do">## drop some sites just for appearance</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(site_id <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"1"</span>, <span class="st">"15"</span>, <span class="st">"47"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> spp_rank, <span class="at">y =</span> <span class="fu">log</span>(abd))) <span class="sc">+</span> </span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>site_id) <span class="sc">+</span> </span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stat_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`geom_smooth()` using formula = 'y ~ x'</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The slope of these lines is one way to think about evenness – more negative slopes mean a less even community. Use this approach to ask the question: Does evenness change with water concentration?</p>
+</section>
+<section id="take-it-to-a-brand-new-dataset-or-to-your-own-science" class="level2">
+<h2 class="anchored" data-anchor-id="take-it-to-a-brand-new-dataset-or-to-your-own-science">Take it to a brand-new dataset (or to your own science!)</h2>
+<p>Install the LTER data sampler package</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("remotes")</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"lter/lterdatasampler"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lterdatasampler)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Check out the <a href="https://lter.github.io/lterdatasampler/">documentation here</a></p>
+<p>There are LOTS of useful datasets in here, which we can use to practice the Secret Weapon. Here are some suggestions to get us started:</p>
+<section id="seedling-stem-length-vs-stem-dry-mass" class="level4">
+<h4 class="anchored" data-anchor-id="seedling-stem-length-vs-stem-dry-mass">Seedling stem length vs Stem dry mass</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(hbr_maples))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 4%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 7%">
+<col style="width: 5%">
+<col style="width: 9%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">year</th>
+<th style="text-align: left;">watershed</th>
+<th style="text-align: left;">elevation</th>
+<th style="text-align: left;">transect</th>
+<th style="text-align: left;">sample</th>
+<th style="text-align: right;">stem_length</th>
+<th style="text-align: right;">leaf1area</th>
+<th style="text-align: right;">leaf2area</th>
+<th style="text-align: right;">leaf_dry_mass</th>
+<th style="text-align: right;">stem_dry_mass</th>
+<th style="text-align: right;">corrected_leaf_area</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">86.9</td>
+<td style="text-align: right;">13.837</td>
+<td style="text-align: right;">12.130</td>
+<td style="text-align: right;">0.0453</td>
+<td style="text-align: right;">0.0300</td>
+<td style="text-align: right;">29.104</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">2</td>
+<td style="text-align: right;">114.0</td>
+<td style="text-align: right;">14.572</td>
+<td style="text-align: right;">15.267</td>
+<td style="text-align: right;">0.0476</td>
+<td style="text-align: right;">0.0338</td>
+<td style="text-align: right;">32.976</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">3</td>
+<td style="text-align: right;">83.5</td>
+<td style="text-align: right;">12.451</td>
+<td style="text-align: right;">9.731</td>
+<td style="text-align: right;">0.0423</td>
+<td style="text-align: right;">0.0248</td>
+<td style="text-align: right;">25.319</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">4</td>
+<td style="text-align: right;">68.1</td>
+<td style="text-align: right;">9.974</td>
+<td style="text-align: right;">10.068</td>
+<td style="text-align: right;">0.0397</td>
+<td style="text-align: right;">0.0194</td>
+<td style="text-align: right;">23.179</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">5</td>
+<td style="text-align: right;">72.1</td>
+<td style="text-align: right;">6.838</td>
+<td style="text-align: right;">5.480</td>
+<td style="text-align: right;">0.0204</td>
+<td style="text-align: right;">0.0180</td>
+<td style="text-align: right;">15.455</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2003</td>
+<td style="text-align: left;">Reference</td>
+<td style="text-align: left;">Low</td>
+<td style="text-align: left;">R1</td>
+<td style="text-align: left;">6</td>
+<td style="text-align: right;">77.7</td>
+<td style="text-align: right;">9.660</td>
+<td style="text-align: right;">7.643</td>
+<td style="text-align: right;">0.0317</td>
+<td style="text-align: right;">0.0246</td>
+<td style="text-align: right;">20.440</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="growth-rates-of-bison-over-time" class="level4">
+<h4 class="anchored" data-anchor-id="growth-rates-of-bison-over-time">Growth rates of bison over time</h4>
+<p>Alternative idea: average differences between males and females across years.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(knz_bison))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 10%">
+<col style="width: 11%">
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 12%">
+<col style="width: 16%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">data_code</th>
+<th style="text-align: right;">rec_year</th>
+<th style="text-align: right;">rec_month</th>
+<th style="text-align: right;">rec_day</th>
+<th style="text-align: left;">animal_code</th>
+<th style="text-align: left;">animal_sex</th>
+<th style="text-align: right;">animal_weight</th>
+<th style="text-align: right;">animal_yob</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">813</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">890</td>
+<td style="text-align: right;">1981</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">834</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">1074</td>
+<td style="text-align: right;">1983</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">B-301</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">1060</td>
+<td style="text-align: right;">1983</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">B-402</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">989</td>
+<td style="text-align: right;">1984</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">B-403</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">1062</td>
+<td style="text-align: right;">1984</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CBH01</td>
+<td style="text-align: right;">1994</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">B-502</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">978</td>
+<td style="text-align: right;">1985</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
 </section>
 </section>
 
